@@ -1,0 +1,1 @@
+java -cp .:sistemaGeorrecomendacion/*: sistemageorrecomendacion.SistemaGeorrecomendacion
