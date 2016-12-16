@@ -18,9 +18,13 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import util.GeoPoint;
 import util.Query;
 import util.SortItemPredictionByRating;
+import util.geo.Cluster;
+import util.geo.Clustering;
 import static util.geo.Distance.distanceDecay;
+import util.geo.RecommendationPath;
 
 /**
  *
@@ -122,7 +126,7 @@ public class Prediction {
         for(int i=0; i<k; i++){
             this.predictions.add(allPredictions.get(i));
         }
-        printPredictions(user_id);
+        //printPredictions(user_id);
     }
     
     public void getTopKItems(int k, int neighborhood_size, long user_id){
@@ -279,6 +283,31 @@ public class Prediction {
         }
         
         return topKPredictions;
+    }
+    
+    public void getBestClusterPath(int k, int neighborhood_size, long user_id, String [] frontier, List<GeoPoint> centroids) throws SQLException{
+        List<Venue> venues = query.findVenuesByFrontier(frontier);
+        getTopKItems(venues.size(), neighborhood_size, user_id, frontier);
+        Clustering kMeans = new Clustering(this.predictions);
+        //Calculando los clusters
+        kMeans.setCentroids(centroids);
+        kMeans.calculate();
+        
+        Cluster bestCluster = kMeans.getBestCluster();
+        
+        List<Venue> venuesPath = new ArrayList();
+        for(ItemPrediction item : bestCluster.getItemPredictions()) {
+            venuesPath.add(item.getVenue());
+        }
+        
+        RecommendationPath path = new RecommendationPath(venuesPath, bestCluster.getCentroid());
+        
+        venuesPath = path.calculatePath();
+        
+        System.out.println("CAMINO: ");
+        for(Venue venue : venuesPath){
+            System.out.println("["+venue.getLatitude()+", "+venue.getLongitude()+"]");
+        }
     }
     
     public double getCorrelationAverage(List<Correlation> neighborhood){

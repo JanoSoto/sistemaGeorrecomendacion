@@ -5,7 +5,7 @@
  */
 package util.geo;
 
-import entities.Venue;
+import recomendation.ItemPrediction;
 import java.util.ArrayList;
 import java.util.List;
 import util.GeoPoint;
@@ -15,19 +15,19 @@ import util.GeoPoint;
  * Implementación de K-Means
  */
 public class Clustering {
-    private List<Venue> items;
+    private List<ItemPrediction> items;
     private List<Cluster> clusters;
     
-    public Clustering(List<Venue> items){        
+    public Clustering(List<ItemPrediction> items){        
         this.items = items;
         this.clusters = new ArrayList();
     }
 
-    public List<Venue> getVenues() {
+    public List<ItemPrediction> getItemPredictions() {
         return items;
     }
 
-    public void setVenues(List<Venue> items) {
+    public void setItemPredictions(List<ItemPrediction> items) {
         this.items = items;
     }
 
@@ -50,18 +50,18 @@ public class Clustering {
         int clusterNum = 0;                 
         double distance; 
         
-        for(Venue item : items) {
+        for(ItemPrediction item : items) {
             min = Double.MAX_VALUE;
             for(int i = 0; i < clusters.size(); i++) {
             	Cluster cluster = clusters.get(i);
-                distance = Distance.calculateDistance(new GeoPoint(item.getLatitude(), item.getLongitude()), 
+                distance = Distance.calculateDistance(new GeoPoint(item.getVenue().getLatitude(), item.getVenue().getLongitude()), 
                                                             cluster.getCentroid());
                 if(distance < min){
                     min = distance;
                     clusterNum = i;
                 }
             }
-            clusters.get(clusterNum).addVenue(item);
+            clusters.get(clusterNum).addItemPrediction(item);
         }
     }
     
@@ -69,12 +69,12 @@ public class Clustering {
         for(Cluster cluster : clusters) {
             double sumX = 0;
             double sumY = 0;
-            List<Venue> clusterVenues = cluster.getVenues();
-            int n_points = clusterVenues.size();
+            List<ItemPrediction> clusterItemPredictions = cluster.getItemPredictions();
+            int n_points = clusterItemPredictions.size();
             
-            for(Venue item : clusterVenues) {
-            	sumX += item.getLatitude();
-                sumY += item.getLongitude();
+            for(ItemPrediction item : clusterItemPredictions) {
+            	sumX += item.getVenue().getLatitude();
+                sumY += item.getVenue().getLongitude();
             }
             
             if(n_points > 0) {                
@@ -134,8 +134,8 @@ public class Clustering {
                 System.out.println("[Cluster: " + cluster.getId()+"]");
 		System.out.println("[Centroid: [" + cluster.getCentroid().getLatitude() + ", " + cluster.getCentroid().getLongitude() + "] ]");
 		System.out.println("[Points: \n");
-		for(Venue item : cluster.getVenues()) {
-			System.out.println("[ " + item.getLatitude() + ", " + item.getLongitude() + " ]");
+		for(ItemPrediction item : cluster.getItemPredictions()) {
+			System.out.println("[ " + item.getVenue().getLatitude() + ", " + item.getVenue().getLongitude() + " ]");
 		}
 		System.out.println("]");
             }
@@ -146,5 +146,22 @@ public class Clustering {
                     finish = true;
             }
         }
+    }
+    
+    public Cluster getBestCluster(){
+        double [] clusterAvgRating = new double[this.clusters.size()];
+        for(int i = 0; i < clusters.size(); i++) {
+            clusterAvgRating[i] = clusters.get(i).getAverageRating();
+        }
+        double max = clusterAvgRating[0];
+        int maxIndex = 0;
+        for(int i = 1; i < clusterAvgRating.length; i++){
+            if(clusterAvgRating[i] > max){
+                max = clusterAvgRating[i];
+                maxIndex = i;
+            }
+        }
+        
+        return this.clusters.get(maxIndex);
     }
 }

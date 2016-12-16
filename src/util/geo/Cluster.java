@@ -5,7 +5,7 @@
  */
 package util.geo;
 
-import entities.Venue;
+import recomendation.ItemPrediction;
 import java.util.ArrayList;
 import java.util.List;
 import util.GeoPoint;
@@ -16,7 +16,7 @@ import util.GeoPoint;
  */
 public class Cluster {
     private long id;
-    private List<Venue> items;
+    private List<ItemPrediction> items;
     private GeoPoint centroid;
     
     public Cluster(long id){
@@ -39,11 +39,11 @@ public class Cluster {
         this.id = id;
     }
 
-    public List<Venue> getVenues() {
+    public List<ItemPrediction> getItemPredictions() {
         return items;
     }
 
-    public void setVenues(List<Venue> items) {
+    public void setItemPredictions(List<ItemPrediction> items) {
         this.items = items;
     }
 
@@ -59,7 +59,15 @@ public class Cluster {
         this.items.clear();
     }
     
-    public void addVenue(Venue item){
+    public void addItemPrediction(ItemPrediction item){
         this.items.add(item);
+    }
+    
+    public double getAverageRating(){
+        double avg = 0;
+        for(ItemPrediction item : this.items){
+            avg += item.getRating();
+        }
+        return avg / items.size();
     }
 }

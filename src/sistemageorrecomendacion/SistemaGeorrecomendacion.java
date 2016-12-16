@@ -110,8 +110,9 @@ public class SistemaGeorrecomendacion {
             int r_inner = 1000;
             int r_outer = 10000;
             
-            prediction.getTopKItems(items, neighborhood_size, user_id, manhattanFrontier);
+            //prediction.getTopKItems(items, neighborhood_size, user_id, manhattanFrontier);
             //prediction.getTopKItemsDistanceDecay(items, neighborhood_size, user_id, r_inner, r_outer);
+            prediction.getBestClusterPath(items, neighborhood_size, user_id, manhattanFrontier, centroids);
             
         }
         catch(ClassNotFoundException | SQLException e){ 
