@@ -6,13 +6,17 @@
 package recomendation;
 
 import entities.Correlation;
+import entities.Rating;
 import entities.Venue;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import util.Query;
 import util.SortItemtPredictionByRating;
 
@@ -22,19 +26,19 @@ import util.SortItemtPredictionByRating;
  */
 public class Prediction {
     private List<ItemPrediction> predictions;
-    private Query queries;
+    private Query query;
 
-    public Prediction(Query queries) {
-        this.queries = queries;
+    public Prediction(Query query) {
+        this.query = query;
         this.predictions = new ArrayList();
     }    
 
     public Query getQueries() {
-        return queries;
+        return query;
     }
 
-    public void setQueries(Query queries) {
-        this.queries = queries;
+    public void setQueries(Query query) {
+        this.query = query;
     }
 
     public List<ItemPrediction> getPredictions() {
@@ -45,36 +49,68 @@ public class Prediction {
         this.predictions = predictions;
     }
     
-    public List<ItemPrediction> getTopKItems(int k, long user_id){
-        List<ItemPrediction> topK = new ArrayList();
+    public void getTopKItems(int k, int neighborhood_size, long user_id, String [] frontier){
+        this.predictions = new ArrayList();
         List<ItemPrediction> allPredictions = new ArrayList();
         
         try {
-            double avgRatingUser = queries.getAverageRatingByUser(user_id);
-            List<Correlation> neighborhood = queries.getNeighborhoodByUser(user_id, 10);
+            double avgRatingUser = query.getAverageRatingByUser(user_id);
+            System.out.println("OBTENIENDO EL VECINDARIO...");
+            List<Correlation> neighborhood = query.getNeighborhoodByUser(user_id, neighborhood_size);
+            System.out.println("VECINDARIO RECUPERADO CON ÉXITO.");
             double avgCorrelation = getCorrelationAverage(neighborhood);
-            
-            List<Venue> venues = queries.getAllVenues();
-            System.out.println("CALCULANDO LAS PREDICCIONES...");
-            for(Venue venue : venues){
-            double sumaVecindario = 0;
+            System.out.println("CALCULANDO EL RATING PROMEDIO DE CADA VECINO...");
+            Map<Long, Double> avgVecindario = new HashMap<>();
             for(Correlation neighbor : neighborhood){
-                double usersCorrelation;
-                if(user_id != neighbor.getUser1_id()){
-                    if((usersCorrelation = queries.getCorrelationByUsers(user_id, neighbor.getUser1_id())) == 2){
-                        usersCorrelation = queries.getCorrelationByUsers(neighbor.getUser1_id(), user_id);
-                    }
-                    sumaVecindario += (queries.getRatingByUserAndVenue(neighbor.getUser1_id(), venue.getId()) - queries.getAverageRatingByUser(neighbor.getUser1_id())) * usersCorrelation;
+                if(avgVecindario.get(neighbor.getUser1_id()) == null){
+                    avgVecindario.put(neighbor.getUser1_id(), query.getAverageRatingByUser(neighbor.getUser1_id()));
                 }
-                else {
-                    if((usersCorrelation = queries.getCorrelationByUsers(user_id, neighbor.getUser2_id())) == 2){
-                        usersCorrelation = queries.getCorrelationByUsers(neighbor.getUser2_id(), user_id);
-                    }
-                    sumaVecindario += (queries.getRatingByUserAndVenue(neighbor.getUser2_id(), venue.getId()) - queries.getAverageRatingByUser(neighbor.getUser2_id())) * usersCorrelation;
+                if(avgVecindario.get(neighbor.getUser2_id()) == null){
+                    avgVecindario.put(neighbor.getUser2_id(), query.getAverageRatingByUser(neighbor.getUser2_id()));
                 }
             }
-            allPredictions.add(new ItemPrediction(venue, avgRatingUser + (sumaVecindario / avgCorrelation)));
-        }
+            System.out.println("RATING PROMEDIO DE CADA VECINO REGISTRADO CON ÉXITO.");
+            System.out.println("OBTENIENDO LOS LUGARES DENTRO DE LA FRONTERA...");
+            List<Venue> venues = query.findVenuesByFrontier(frontier);
+            System.out.println("SE RECUPERARON "+venues.size()+" LUGARES.");
+            System.out.println("CARGANDO LOS RATINGS EN MEMORIA...");
+            List<Rating> allRatings = query.getAllRatings();
+            System.out.println("Cantidad de ratings: "+allRatings.size());
+            MultiKeyMap ratings = new MultiKeyMap();
+            for(Rating rating : allRatings){
+                //System.out.println("Agregando: "+rating.getUser_id()+", "+rating.getVenue_id()+", "+rating.getRating());
+                ratings.put((long) rating.getUser_id(), (long) rating.getVenue_id(), rating.getRating());
+            }
+            System.out.println("Cantidad de ratings: "+ratings.size());
+            System.out.println("RATINGS CARGADOS CON ÉXITO.");            
+            System.out.println("prueba: "+ratings.get((long) 205, (long) 273));
+            System.out.println("CALCULANDO LAS PREDICCIONES...");
+            long startTime = System.currentTimeMillis();
+            for(Venue venue : venues){
+                System.out.println("Predicción del lugar "+venue.getId());
+                double sumaVecindario = 0;
+                for(Correlation neighbor : neighborhood){
+                    double usersCorrelation;
+                    if(user_id != neighbor.getUser1_id()){
+                        if((usersCorrelation = query.getCorrelationByUsers(user_id, neighbor.getUser1_id())) == 2){
+                            usersCorrelation = query.getCorrelationByUsers(neighbor.getUser1_id(), user_id);
+                        }
+                        if(ratings.get(neighbor.getUser1_id(), venue.getId()) != null){
+                            sumaVecindario += ((int) ratings.get(neighbor.getUser1_id(), venue.getId()) - avgVecindario.get(neighbor.getUser1_id())) * usersCorrelation;
+                        }
+                    }
+                    else {
+                        if((usersCorrelation = query.getCorrelationByUsers(user_id, neighbor.getUser2_id())) == 2){
+                            usersCorrelation = query.getCorrelationByUsers(neighbor.getUser2_id(), user_id);
+                        }
+                        if(ratings.get(neighbor.getUser2_id(), venue.getId()) != null){
+                            sumaVecindario += ((int) ratings.get(neighbor.getUser2_id(), venue.getId()) - avgVecindario.get(neighbor.getUser2_id())) * usersCorrelation;
+                        }
+                    }
+                }
+                allPredictions.add(new ItemPrediction(venue, avgRatingUser + (sumaVecindario / avgCorrelation)));
+            }
+            System.out.println("Tiempo total: "+(System.currentTimeMillis() - startTime)/1000);
         } 
         catch (SQLException ex) {
             ex.printStackTrace(System.out);
@@ -83,9 +119,61 @@ public class Prediction {
         System.out.println("OBTENIENDO LAS TOP K PREDICCIONES");
         allPredictions.sort(new SortItemtPredictionByRating());
         for(int i=0; i<k; i++){
-            topK.add(allPredictions.get(i));
+            this.predictions.add(allPredictions.get(i));
         }
-        return topK;
+        printPredictions(user_id);
+    }
+    
+    public void getTopKItems(int k, int neighborhood_size, long user_id){
+        this.predictions = new ArrayList();
+        List<ItemPrediction> allPredictions = new ArrayList();
+        
+        try {
+            double avgRatingUser = query.getAverageRatingByUser(user_id);
+            List<Correlation> neighborhood = query.getNeighborhoodByUser(user_id, neighborhood_size);
+            double avgCorrelation = getCorrelationAverage(neighborhood);
+            Map<Long, Double> avgVecindario = new HashMap<>();
+            for(Correlation neighbor : neighborhood){
+                if(avgVecindario.get(neighbor.getUser1_id()) == null){
+                    avgVecindario.put(neighbor.getUser1_id(), query.getAverageRatingByUser(neighbor.getUser1_id()));
+                }
+                if(avgVecindario.get(neighbor.getUser2_id()) == null){
+                    avgVecindario.put(neighbor.getUser2_id(), query.getAverageRatingByUser(neighbor.getUser2_id()));
+                }
+            }
+            List<Venue> venues = query.getAllVenues();
+            System.out.println("CALCULANDO LAS PREDICCIONES...");
+            for(Venue venue : venues){
+                System.out.println("Predicción del lugar "+venue.getId());
+                double sumaVecindario = 0;
+                for(Correlation neighbor : neighborhood){
+                    double usersCorrelation;
+                    if(user_id != neighbor.getUser1_id()){
+                        if((usersCorrelation = query.getCorrelationByUsers(user_id, neighbor.getUser1_id())) == 2){
+                            usersCorrelation = query.getCorrelationByUsers(neighbor.getUser1_id(), user_id);
+                        }
+                        sumaVecindario += (query.getRatingByUserAndVenue(neighbor.getUser1_id(), venue.getId()) - query.getAverageRatingByUser(neighbor.getUser1_id())) * usersCorrelation;
+                    }
+                    else {
+                        if((usersCorrelation = query.getCorrelationByUsers(user_id, neighbor.getUser2_id())) == 2){
+                            usersCorrelation = query.getCorrelationByUsers(neighbor.getUser2_id(), user_id);
+                        }
+                        sumaVecindario += (query.getRatingByUserAndVenue(neighbor.getUser2_id(), venue.getId()) - query.getAverageRatingByUser(neighbor.getUser2_id())) * usersCorrelation;
+                    }
+                }
+                allPredictions.add(new ItemPrediction(venue, avgRatingUser + (sumaVecindario / avgCorrelation)));
+            }
+        } 
+        catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        }
+        
+        System.out.println("OBTENIENDO LAS TOP K PREDICCIONES");
+        allPredictions.sort(new SortItemtPredictionByRating());
+        for(int i=0; i<k; i++){
+            this.predictions.add(allPredictions.get(i));
+        }
+        printPredictions(user_id);
     }
     
     
@@ -97,5 +185,12 @@ public class Prediction {
         }
         
         return sum/neighborhood.size();
+    }
+    
+    private void printPredictions(long user_id){
+        System.out.println("ITEMS RECOMENDADOS PARA EL USUARIO "+user_id);
+        for(int i = 0; i < predictions.size(); i++){
+            System.out.println((i+1)+".- Venue: "+predictions.get(i).getVenue().getId()+", Rating: "+predictions.get(i).getRating());
+        }
     }
 }

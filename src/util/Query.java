@@ -59,6 +59,38 @@ public class Query {
         return users;
     }
     
+    public List<User> findUsersByFrontier(String [] frontier) throws SQLException{
+        String polygon = "\'POLYGON((";
+        for(String gp : frontier){
+            polygon = polygon.concat(gp+", ");
+        }
+        polygon = polygon.concat(frontier[0]+"))\'");
+        
+        List<User> users = new ArrayList();
+        
+        ResultSet rs = stmt.executeQuery("SELECT * FROM user WHERE ST_CONTAINS(ST_GEOMFROMTEXT("+polygon+"), POINT(user.latitude, user.longitude))");
+        while(rs.next()){
+            users.add(new User(rs.getLong(1), rs.getDouble(2), rs.getDouble(3)));
+        }
+        return users;
+    }
+    
+    public List<Venue> findVenuesByFrontier(String [] frontier) throws SQLException {
+        String polygon = "\'POLYGON((";
+        for(String gp : frontier){
+            polygon = polygon.concat(gp+", ");
+        }
+        polygon = polygon.concat(frontier[0]+"))\'");
+        
+        List<Venue> venues = new ArrayList();
+        
+        ResultSet rs = stmt.executeQuery("SELECT * FROM venue WHERE ST_CONTAINS(ST_GEOMFROMTEXT("+polygon+"), POINT(venue.latitude, venue.longitude))");
+        while(rs.next()){
+            venues.add(new Venue(rs.getLong(1), rs.getDouble(2), rs.getDouble(3)));
+        }
+        return venues;
+    }
+    
     public List<Long> getAllUsersIds() throws SQLException{
         List<Long> usersId = new ArrayList();
         ResultSet rs = stmt.executeQuery("SELECT id FROM user");
@@ -162,5 +194,14 @@ public class Query {
             ex.printStackTrace(System.out);
         }
         return 0;
+    }
+    
+    public List<Rating> getAllRatings() throws SQLException{
+        List<Rating> ratings = new ArrayList();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM rating");
+        while(rs.next()){
+            ratings.add(new Rating(rs.getLong(2), rs.getLong(3), rs.getInt(4)));
+        }
+        return ratings;
     }
 }
