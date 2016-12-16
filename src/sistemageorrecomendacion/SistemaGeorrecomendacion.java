@@ -104,10 +104,14 @@ public class SistemaGeorrecomendacion {
             Prediction prediction = new Prediction(queries);
             
             int items = 20;
-            int neighborhood_size = 10;
-            long user_id = 4442;
+            int neighborhood_size = 20;
+            //Users para probar (cantidad de correlaciones): 4442(36), 485(27), 423(14), 2028(10)
+            long user_id = 485;
+            int r_inner = 1000;
+            int r_outer = 10000;
             
             prediction.getTopKItems(items, neighborhood_size, user_id, manhattanFrontier);
+            //prediction.getTopKItemsDistanceDecay(items, neighborhood_size, user_id, r_inner, r_outer);
             
         }
         catch(ClassNotFoundException | SQLException e){ 

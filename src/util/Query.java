@@ -172,6 +172,19 @@ public class Query {
         return venues;
     }
     
+    public List<Venue> getNVenues(int n){
+        List<Venue> venues = new ArrayList();
+        try {
+            ResultSet rs = stmt.executeQuery("SELECT * FROM venue LIMIT "+n);
+            while(rs.next()){
+                venues.add(new Venue(rs.getLong(1), rs.getDouble(2), rs.getDouble(3)));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.out);
+        }
+        return venues;
+    }
+    
     public double getCorrelationByUsers(long user1_id, long user2_id){
         try {
             ResultSet rs = stmt.executeQuery("SELECT correlation_value FROM correlation WHERE user1_id = "+user1_id+" AND user2_id = "+user2_id);
@@ -203,5 +216,15 @@ public class Query {
             ratings.add(new Rating(rs.getLong(2), rs.getLong(3), rs.getInt(4)));
         }
         return ratings;
+    }
+    
+    public User getUserById(long user_id) throws SQLException {
+        ResultSet rs = stmt.executeQuery("SELECT * FROM user WHERE id = "+user_id);
+        if(rs.next()){
+            return new User(rs.getLong(1), rs.getDouble(2), rs.getDouble(3));
+        }
+        else {
+            return null;
+        }
     }
 }

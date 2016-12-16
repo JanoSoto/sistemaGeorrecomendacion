@@ -12,7 +12,7 @@ import recomendation.ItemPrediction;
  *
  * @author JAno
  */
-public class SortItemtPredictionByRating implements Comparator<ItemPrediction>{
+public class SortItemPredictionByRating implements Comparator<ItemPrediction>{
 
     @Override
     public int compare(ItemPrediction o1, ItemPrediction o2) {
