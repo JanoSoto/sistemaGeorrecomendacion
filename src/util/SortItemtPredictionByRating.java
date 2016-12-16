@@ -16,7 +16,7 @@ public class SortItemtPredictionByRating implements Comparator<ItemPrediction>{
 
     @Override
     public int compare(ItemPrediction o1, ItemPrediction o2) {
-        return (int) (o2.getRating() - o1.getRating());
+        return o2.getRating() > o1.getRating() ? 1 : (o2.getRating() < o1.getRating() ) ? -1 : 0;
     }
     
 }

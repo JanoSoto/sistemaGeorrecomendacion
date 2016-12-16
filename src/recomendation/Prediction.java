@@ -83,11 +83,10 @@ public class Prediction {
             }
             System.out.println("Cantidad de ratings: "+ratings.size());
             System.out.println("RATINGS CARGADOS CON ÉXITO.");            
-            System.out.println("prueba: "+ratings.get((long) 205, (long) 273));
             System.out.println("CALCULANDO LAS PREDICCIONES...");
             long startTime = System.currentTimeMillis();
             for(Venue venue : venues){
-                System.out.println("Predicción del lugar "+venue.getId());
+                //System.out.println("Predicción del lugar "+venue.getId());
                 double sumaVecindario = 0;
                 for(Correlation neighbor : neighborhood){
                     double usersCorrelation;
