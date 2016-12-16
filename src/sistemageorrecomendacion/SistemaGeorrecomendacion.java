@@ -11,9 +11,11 @@ import entities.Venue;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import recomendation.Prediction;
 import util.CorrelationFunctons;
+import util.GeoPoint;
 import util.Query;
 
 /**
@@ -82,6 +84,23 @@ public class SistemaGeorrecomendacion {
                                             "40.750817 -74.008928",
                                             "40.704982 -74.017012",
                                             "40.701434 -74.015741"};
+            
+            List<GeoPoint> centroids = new ArrayList();
+            centroids.add(new GeoPoint(40.707512, -74.011941));
+            centroids.add(new GeoPoint(40.719209, -74.006779));
+            centroids.add(new GeoPoint(40.718570, -73.988256));
+            centroids.add(new GeoPoint(40.730460, -73.992928));
+            centroids.add(new GeoPoint(40.743132, -73.984000));
+            centroids.add(new GeoPoint(40.751833, -73.993307));
+            centroids.add(new GeoPoint(40.759441, -73.981111));
+            centroids.add(new GeoPoint(40.768617, -73.981244));
+            centroids.add(new GeoPoint(40.781905, -73.972062));
+            centroids.add(new GeoPoint(40.785857, -73.950950));
+            centroids.add(new GeoPoint(40.807716, -73.964109));
+            centroids.add(new GeoPoint(40.817120, -73.948240));
+            centroids.add(new GeoPoint(40.805128, -73.939088));
+            centroids.add(new GeoPoint(40.768140, -73.963862));
+            
             Prediction prediction = new Prediction(queries);
             
             int items = 20;
