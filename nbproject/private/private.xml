@@ -11,7 +11,9 @@
         <group name="RBox development">
             <file>file:/C:/Users/JAno/Documents/NetBeansProjects/SistemaGeorrecomendacion/src/recomendation/Prediction.java</file>
             <file>file:/C:/Users/JAno/Documents/NetBeansProjects/SistemaGeorrecomendacion/src/sistemageorrecomendacion/SistemaGeorrecomendacion.java</file>
-            <file>file:/C:/Users/JAno/Documents/NetBeansProjects/SistemaGeorrecomendacion/src/util/Query.java</file>
+            <file>file:/C:/Users/JAno/Documents/NetBeansProjects/SistemaGeorrecomendacion/src/util/geo/Distance.java</file>
+            <file>file:/C:/Users/JAno/Documents/NetBeansProjects/SistemaGeorrecomendacion/src/util/geo/RecommendationPath.java</file>
+            <file>file:/C:/Users/JAno/Documents/NetBeansProjects/SistemaGeorrecomendacion/src/util/geo/Clustering.java</file>
         </group>
     </open-files>
 </project-private>

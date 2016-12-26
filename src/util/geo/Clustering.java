@@ -45,7 +45,7 @@ public class Clustering {
         }
     }
     
-    private void assignCluster() {
+    public void assignCluster() {
         double min; 
         int clusterNum = 0;                 
         double distance; 
@@ -135,7 +135,7 @@ public class Clustering {
 		System.out.println("[Centroid: [" + cluster.getCentroid().getLatitude() + ", " + cluster.getCentroid().getLongitude() + "] ]");
 		System.out.println("[Points: \n");
 		for(ItemPrediction item : cluster.getItemPredictions()) {
-			System.out.println("[ " + item.getVenue().getLatitude() + ", " + item.getVenue().getLongitude() + " ]");
+                    System.out.println("[ " + item.getVenue().getLatitude() + ", " + item.getVenue().getLongitude() + " ]");
 		}
 		System.out.println("]");
             }
@@ -143,7 +143,7 @@ public class Clustering {
             System.out.println("]");
             
             if(distance == 0) {
-                    finish = true;
+                finish = true;
             }
         }
     }

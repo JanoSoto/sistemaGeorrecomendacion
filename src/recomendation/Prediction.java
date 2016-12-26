@@ -291,10 +291,15 @@ public class Prediction {
         Clustering kMeans = new Clustering(this.predictions);
         //Calculando los clusters
         kMeans.setCentroids(centroids);
-        kMeans.calculate();
+        kMeans.assignCluster();
         
         Cluster bestCluster = kMeans.getBestCluster();
-        
+        System.out.println("------");
+        System.out.println("Mejor cluster: "+bestCluster.getId());
+        System.out.println("Cantidad de lugares: "+bestCluster.getItemPredictions().size());
+        System.out.println("Centroide: ["+bestCluster.getCentroid().getLatitude()+", "+bestCluster.getCentroid().getLongitude()+"]");
+        System.out.println("Rating promedio: "+bestCluster.getAverageRating());
+        System.out.println("------");
         List<Venue> venuesPath = new ArrayList();
         for(ItemPrediction item : bestCluster.getItemPredictions()) {
             venuesPath.add(item.getVenue());
@@ -304,9 +309,9 @@ public class Prediction {
         
         venuesPath = path.calculatePath();
         
-        System.out.println("CAMINO: ");
+        System.out.println("CAMINO (Cluster "+bestCluster.getId()+": ");
         for(Venue venue : venuesPath){
-            System.out.println("["+venue.getLatitude()+", "+venue.getLongitude()+"]");
+            System.out.println("path.push(["+venue.getLatitude()+", "+venue.getLongitude()+"]);");
         }
     }
     
